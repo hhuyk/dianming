@@ -1,6 +1,7 @@
 <template>
   <div>
-    <form method="POST" id="form" @submit.prevent=" send_login ">
+<!-- method="POST"  -->
+    <form  id="form"   @submit.prevent="send_login">
       <div class="title">
         登录
         <router-link to="register" id="login">注册<i class="fa fa-angle-right" aria-hidden="true"></i></router-link>
@@ -18,7 +19,7 @@
 <!--v-model.trim 自动过滤首尾空格-->
         <input type="password" id="password" required v-model.trim=" user.password ">
       </div>
-      <button>登录</button>
+      <button >登录</button>
     </form>
     <msgBox :config="config" @closeBox=" closeBox "></msgBox>
   </div>
@@ -42,11 +43,13 @@
     mixins:[mixin_msgBox],
     methods :{
       send_login(){
+        console.log(this.user)
         sendLogin(this.user).then((res)=>{
           if(res.data== 'fail'){
             //这里使用 混入的方法，可以直接调用
             this.changeCfg('检查邮箱密码是否错误','登录失败')
           }else{
+            console.log(res)
             //设置cookie为 name:token  值是响应的数据的邮箱
             setCookie({ name: 'token', val: res.data[0].user_email });
             //设置 store 将调用 user 的mutation 将res 直接传入，这样就可以 通过 this.$store.state拿到 user 信息了

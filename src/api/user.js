@@ -1,4 +1,6 @@
-import fetch from '../utils/fetch'
+// const fetch =require('../../src/utils/fetch')
+import fetch  from '../utils/fetch'
+
  const cookieLogin = function(token) {
   return new fetch({
     url: '/api/cookieLogin',
@@ -35,5 +37,6 @@ const setCookie = function({ name, val, time = 1 }) {
   });
   return result;
 }
-export {cookieLogin,setCookie, getCookie}
+export { setCookie, getCookie, cookieLogin };
+
 
