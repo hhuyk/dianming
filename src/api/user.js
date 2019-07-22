@@ -17,7 +17,8 @@ import fetch  from '../utils/fetch'
 const setCookie = function({ name, val, time = 1 }) {
   let d = new Date();
   //这里通过expires设置过期时间
-  d.setTime(d.getTime() + (time * 24 * 60 * 60 * 1000));
+  d.setTime(d.getTime() + (time *24 *1000));
+
   document.cookie = `${name}=${val};expires=${d.toUTCString()}`;
 }
 

@@ -14,7 +14,6 @@ import  fetch from '../utils/fetch'
               url :'api/login',
               method:'post',
               data:data,
-
          })
        }
 export default sendLogin

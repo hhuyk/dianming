@@ -69,10 +69,26 @@ export default {
 
   },
   created() {
+
     let token = getCookie('token');
     console.log(token)
-    if (token === 'undefined') {
+    if (token === null) {
       this.$router.push('/login');
+    }
+    else {
+      let email =this.$store.state.user.user.user_email
+      console.log(email)
+      if(email===''||email ===null||email===undefined){
+        console.log('开始设置store')
+        this.$store.dispatch('SET_USER',token)
+          .then(()=>{
+            console.log('使用cookie登录的'+this.$store.state.user.user.user_email)
+          })
+      }
+    else{
+
+      }
+
     }
   }
 
