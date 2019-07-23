@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const crypto = require('crypto');
 const User = require('../../server/moule/user')
+const absent = require('../../server/moule/absent')
 
 
 router.post('/cookieLogin',(req,res)=>{
@@ -67,6 +68,16 @@ router.post('/register',(req,res)=>{
           res.send(docs)
         }
       })
+    }
+  })
+})
+router.get('/get_caledarDay',(req,res)=>{
+  absent.find({absend_year:req.query.year,absend_month:req.query.month,user_email:req.query.email},
+    (err,docs)=>{
+    if(err) throw err
+      else {
+        console.log('缺席名单查询成功')
+      res.json({data:docs})
     }
   })
 })

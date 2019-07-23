@@ -3,23 +3,25 @@
   <div class="ui-datepicker-wrapper">
 <!--    头部-->
     <div class="ui-datepicker-header">
-      <a  class="ui-datepicker-btn ui-datepicker-btn-prev" >&lt;</a>
-      <a  class="ui-datepicker-btn ui-datepicker-btn-next">&gt;</a>
-      <span class="ui-datepicker-cur-month">年-月</span>
+<!--     @click.stop阻止事件冒泡  -->
+      <a class="ui-datepicker-btn ui-datepicker-btn-prev" @click.stop="rende('prev')" >&lt;</a>
+      <a class="ui-datepicker-btn ui-datepicker-btn-next" @click.stop="rende('next')">&gt;</a>
+      <span class="ui-datepicker-cur-month">{{ monthData.year }}年-{{ monthData.month }}月</span>
     </div>
 <!--日期内容-->
     <div class="ui-datepicker-body">
       <table>
         <thead>
         <tr>
-          <th ></th>
+          <th v-for=" (week,w_index) in config.week " v-text=" week " :key=" w_index "></th>
         </tr>
         </thead>
         <tbody>
-        <tr >
-          <td >
-            <span></span>
-            <span  class="absent-day">有缺勤</span>
+        <tr v-for=" (row,r_index) in monthArr" :key=" r_index ">
+          <td v-for=" (item,i_index) in row " :key=" i_index " @click=" changeUrl(`${item.year}-${item.month}-${item.showDate}`) "
+              :class="{ nowDate: getToday(item.year,item.month,item.showDate)}">
+            <span> {{ item.showDate }}</span>
+            <span v-if=" item.flag > 0 " class="absent-day">有缺勤</span>
           </td>
         </tr>
         </tbody>
@@ -43,7 +45,8 @@ export default {
        monthData:'',//月份数据
       config:{
          week:['一', '二', '三', '四', '五', '六', '日']
-      }
+      },
+      absentArr: []
     }
 },
   computed: {
@@ -65,11 +68,7 @@ export default {
       }
     }
   },
-  methods :{
-
-  },
   created() {
-
     let token = getCookie('token');
     console.log(token)
     if (token === null) {
@@ -83,13 +82,165 @@ export default {
         this.$store.dispatch('SET_USER',token)
           .then(()=>{
             console.log('使用cookie登录的'+this.$store.state.user.user.user_email)
+
+            this.init();
+            this.set_absentDay();
           })
       }
     else{
-
+        this.init();
+        this.set_absentDay();
       }
 
     }
+  },
+  methods :{
+    changeUrl(date){
+      if (date.indexOf('null') > 0 || !(date)) {
+        return;
+      };
+      let dataDate = new Date(date)
+      let today = new Date();
+      let todaytTime = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      // 点击的日期是今天
+      if (dataDate.getTime() === todaytTime.getTime()) {
+        this.$router.push('/options');
+      } else {
+        // 点击的日期不是今天
+        this.$router.push('select_cls');
+      }
+      this.$store.commit('SET_CURDATE', date);
+
+
+    },
+    rende (direction){
+      let year, month;
+      let _self = this;
+
+      if (this.monthData) {
+        year = this.monthData.year;
+        month = this.monthData.month;
+      }
+
+      if (direction === 'prev') month--;
+      if (direction === 'next') month++;
+
+      if (month == 0) {
+        year--;
+        month = 12;
+      };
+      this.monthData = this.getMonthDate(year, month);
+      this.set_absentDay();
+      return
+
+
+    },
+    getMonthDate(year, month){
+      if (!year || !month) {
+        var today = new Date();
+        year = today.getFullYear();
+        month = today.getMonth() + 1;
+      };
+
+      let ret = []; // 存储当前月份的日期
+
+      let firstDay = new Date(year, month - 1, 1); // 当月的第一天
+      let firstDayWeekDay = firstDay.getDay(); // 当月第一天的周天数
+      if (firstDayWeekDay === 0) firstDayWeekDay = 7;
+
+      year = firstDay.getFullYear();
+      month = firstDay.getMonth() + 1;
+
+      // 上月的最后一天
+      let lastDayOfLastMonth = new Date(year, month - 1, 0);
+      // 上月的最后一天是几号
+      let lastDateOfLastMonth = lastDayOfLastMonth.getDate();
+
+      let preMonthDayCount = firstDayWeekDay - 1; // 显示几天上个月的天数
+
+      let lastDay = new Date(year, month, 0); // 当月最后一天
+      let lastDate = lastDay.getDate(); // 当月最后一天是几号
+
+      for (var i = 0; i < 7 * 6; i++) {
+        let date = i + 1 - preMonthDayCount;
+        let showDate = date; // 显示的日期
+        let thisMonth = month; // 显示的日期的月份
+        let thisYear = year; // 显示的日期的年份
+
+        if (date <= 0 || date > lastDate) {
+          // 上个月的数据
+          thisMonth = null;
+          showDate = null;
+        }
+
+        if (thisMonth == 0) {
+          thisMonth = 12;
+          thisYear--;
+        }
+        if (thisMonth == 13) {
+          thisMonth = 1;
+          thisYear++;
+        }
+
+        // 添加日期
+        ret.push({
+          month: thisMonth,
+          date: date,
+          showDate: showDate,
+          year: thisYear
+        });
+      }
+
+      // 返回数据
+      return {
+        year: year,
+        month: month,
+        days: ret
+      };
+    },
+    init(){
+      this.monthData = this.getMonthDate();
+    },
+    set_absentDay() {
+      const email = this.$store.state.user.user.user_email;
+      getCaledarDay({ year: this.monthData.year, month: this.monthData.month, email })
+        .then((res) => {
+          res.data.data.forEach((item, index) => {
+            let day = this.filter({
+              year: item.absend_year,
+              month: item.absend_month,
+              day: item.absend_day
+            });
+            let flag = this.getToday(item.absend_year, item.absend_month, item.absend_day);
+            flag ? this.$set(day, 'flag', 0) : this.$set(day, 'flag', 1);
+          })
+        })
+        .catch((error) => {
+          throw error;
+        });
+
+    },
+    filter({ year, month, day }){
+      let result = null;
+      this.monthArr.forEach((row, index) => {
+        let res = row.find((item) => {
+          return new Date(item.year, item.month, item.date).getTime() == new Date(Number(year),
+            Number(month), Number(day)).getTime();
+        });
+        if (res !== undefined) {
+          result = res;
+          return;
+        }
+      });
+      return result;
+    },
+    //如果是今天 则返回为true
+    getToday(year, month, date) {
+      let dataDate = new Date(year, month, date)
+      let today = new Date();
+      return dataDate.getTime() === new Date(today.getFullYear(), today.getMonth() + 1, today.getDate()).getTime();
+    },
+
   }
 
 }
