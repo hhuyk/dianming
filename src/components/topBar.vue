@@ -16,6 +16,7 @@
 
       }
     },
+    //通过 props属性可以父向子传参数
     props:{
       title: {
         type: String,

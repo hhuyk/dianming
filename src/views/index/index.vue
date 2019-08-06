@@ -101,6 +101,7 @@ export default {
       };
       let dataDate = new Date(date)
       let today = new Date();
+      //这样使得日期时间一样
       let todaytTime = new Date(today.getFullYear(), today.getMonth(), today.getDate());
       // 点击的日期是今天
       if (dataDate.getTime() === todaytTime.getTime()) {

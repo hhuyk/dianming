@@ -1,6 +1,6 @@
 <template>
   <div id="restor">
-    <topBar :title="''" :reUrl=" '/' "></topBar>
+    <topBar :title="'查看考勤'" :reUrl=" '/' "></topBar>
     <ul>
       <li @click=" showRoster " v-if=" isToday() ">
         <i class="fa fa-book" aria-hidden="true"></i><span class="title">导入名册</span>
@@ -12,15 +12,15 @@
         <i class="fa fa-calendar-times-o" aria-hidden="true"></i><span class="title">查看当日考勤</span>
       </li>
     </ul>
-<!--    <importRoster :showRoster=" show " @changeShow=" changeShow "></importRoster>-->
+    <importRoster :showRoster=" show " @changeShow=" changeShow "></importRoster>
   </div>
 </template>
 
 <script>
-  // import importRoster from 'views/options/childrens/import_roster.vue';
+  import importRoster from '../views/importRoster';
   import topBar from '../components/topBar';
   export default {
-    name: 'restor',
+    name: 'options',
     data() {
       return {
         show: false
@@ -44,9 +44,10 @@
     },
     components: {
       topBar,
-      // importRoster
+      importRoster
     },
     created() {
+      console.log('点击的日期是' + this.$store.state.cls.curDate )
       if(this.$store.state.cls.curDate == '') {
         this.$router.push('/');
         return;
